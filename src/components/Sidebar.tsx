@@ -1,6 +1,17 @@
 import React from "react";
 
-type nodeTypes = "circle" | "square" | "default" | "resizeReactngleNode";
+type nodeTypes = "circle" | "square" | "default" | "resizeReactangleNode";
+
+const ShapeStyle = {
+  cursor: "grab",
+  width: "70px",
+  height: "70px",
+  border: "1px solid rgb(158 150 150)",
+  marginBottom: "10px",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+};
 export default function Sidebar() {
   const onDragStart = (event: any, nodeType: nodeTypes) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
@@ -10,21 +21,20 @@ export default function Sidebar() {
   return (
     <aside
       style={{
-        margin: "auto",
-        width: 150,
+        display: "flex",
+        justifyContent: "center",
         padding: 10,
         background: "#f0f0f0",
-        height: "95%",
+        height: "97.7%",
+        gap: 10,
       }}
     >
       <div
         draggable
         onDragStart={(event) => onDragStart(event, "circle")}
         style={{
-          padding: "10px",
-          marginBottom: "10px",
-          backgroundColor: "#ddd",
-          cursor: "grab",
+          ...ShapeStyle,
+          borderRadius: "100%",
         }}
       >
         Circle
@@ -32,12 +42,9 @@ export default function Sidebar() {
 
       <div
         draggable
-        onDragStart={(event) => onDragStart(event, "resizeReactngleNode")}
+        onDragStart={(event) => onDragStart(event, "resizeReactangleNode")}
         style={{
-          padding: "10px",
-          marginBottom: "10px",
-          backgroundColor: "#ddd",
-          cursor: "grab",
+          ...ShapeStyle,
         }}
       >
         Square

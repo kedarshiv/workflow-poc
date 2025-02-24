@@ -8,7 +8,9 @@ import ReactFlow, {
   Controls,
   Edge,
   EdgeChange,
+  EdgeTypes,
   MarkerType,
+  Node,
   NodeChange,
   OnConnect,
   OnNodesChange,
@@ -16,19 +18,21 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import {
   CircleNode,
-  DiamondNode,
   ResizableNodeSelected,
   SquareNode,
-} from "./components/CustomeNodes";
+} from "./components/CustomNode/CustomeNodes";
 import Sidebar from "./components/Sidebar";
 import { Button } from "@mui/material";
 import { WorkflowForm } from "./components/WorkflowForm";
+import { generateFlowObject } from "./utils/utils";
+import "./app.css";
+import { Menu } from "@mui/icons-material";
+import { EdgeForm } from "./components/EdgeForm";
 
 export const nodeTypes = {
   circle: CircleNode,
-  diamond: DiamondNode,
   square: SquareNode,
-  resizeReactngleNode: ResizableNodeSelected,
+  resizeReactangleNode: ResizableNodeSelected,
 };
 
 const edgeConfig = {
@@ -40,43 +44,15 @@ const edgeConfig = {
     strokeWidth: 1.5,
   },
 };
-const initialNodes = [
-  {
-    id: "1",
-    type: "circle",
-    position: { x: 100, y: 100 },
-    data: { label: "Circle" },
-  },
-  // {
-  //   id: "2",
-  //   type: "diamond",
-  //   position: { x: 300, y: 100 },
-  //   data: { label: "Diamond" },
-  // },
-  {
-    id: "2",
-    type: "square",
-    position: { x: 500, y: 100 },
-    data: {
-      label: "Square",
-      stage: "Defect",
-      stageStatus: "Start",
-      template: { templateVersion: 1233434 },
-    },
-  },
-  {
-    id: "3",
-    type: "resizeReactngleNode",
-    position: { x: 800, y: 100 },
-    data: { label: "Resize Node" },
-  },
-];
 
-let currentNodeIndex = -1;
 export default function App() {
-  const [nodes, setNodes] = useState<any[]>([]);
-  const [edges, setEdges] = useState<any>([]);
-  const [selectedNode, setSelectedNode] = useState<null | any>(null);
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [selectedNode, setSelectedNode] = useState<null | Node>(null);
+  const [selectedEdge, setSelectedEdge] = useState<null | Edge>(null);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const [currentNodeIndex, setCurrentNodeIndex] = useState(-1);
+  const [currentEdgeIndex, setCurrentedgeIndex] = useState(-1);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setNodes((nds: any) => applyNodeChanges(changes, nds));
@@ -88,11 +64,10 @@ export default function App() {
   }, []);
 
   const onConnect = useCallback((connection: Connection) => {
-    console.log({ connection });
-
     const customConnect = {
       ...edgeConfig,
       ...connection,
+      data: { label: "test" },
     };
     setEdges((eds: any) => addEdge(customConnect, eds));
   }, []);
@@ -123,71 +98,77 @@ export default function App() {
   );
 
   const handleExportJson = () => {
-    console.log({ nodes });
+    generateFlowObject(nodes, edges);
   };
 
-  const handleNodeClick = (e: any, node: any) => {
+  const handleNodeClick = (e: any, node: Node) => {
     e.stopPropagation();
     setSelectedNode(node);
-    currentNodeIndex = nodes.findIndex((n) => n.id === node.id);
-    console.log({ currentNodeIndex, node, nodes });
+    setSelectedEdge(null);
+    setCurrentNodeIndex(nodes.findIndex((n) => n.id === node.id));
   };
-  console.log({ currentNodeIndex });
+
   const handleNodeValueChange = (value: string, field: string) => {
     if (selectedNode) {
       const currentNode = { ...selectedNode };
       currentNode.data[field] = value;
       setSelectedNode(currentNode);
-      console.log({ currentNodeIndex });
       const currentNodes = [...nodes];
       currentNodes[currentNodeIndex] = currentNode;
-      console.log({ currentNodes });
+
       setNodes(currentNodes);
     }
   };
 
+  const handleEdgeClick = useCallback(
+    (event: any, edge: Edge<any>) => {
+      event.stopPropagation(); // Prevent click from propagating to other elements
+      setSelectedNode(null);
+      setSelectedEdge(edge);
+      console.log({ edge, edges });
+      const edgeIndex = edges.findIndex((e) => e.id === edge.id);
+      console.log({ edgeIndex });
+      setCurrentedgeIndex(edgeIndex);
+    },
+    [edges]
+  );
+
+  console.log({ nodes, edges });
+  const handleEdgeValueChange = useCallback(
+    (value: string, field: string) => {
+      if (selectedEdge) {
+        const currentEdge = { ...selectedEdge };
+        if (field === "label") {
+          currentEdge["label"] = value;
+        } else {
+          currentEdge.data[field] = value;
+        }
+        setSelectedEdge(currentEdge);
+        const currentEdges = [...edges];
+        console.log({ currentEdgeIndex });
+        currentEdges[currentEdgeIndex] = currentEdge;
+        console.log({ currentEdges });
+        setEdges(currentEdges);
+      }
+    },
+    [currentEdgeIndex, selectedEdge]
+  );
+
   const handleDeleteEdge = useCallback(
     (event: any, edge: Edge<any>) => {
       event.stopPropagation(); // Prevent click from propagating to other elements
-      setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+      setEdges((eds: any) => eds.filter((e: any) => e.id !== edge.id));
     },
     [setEdges]
   );
 
   return (
     <div style={{ width: "100vw", height: "100vh", display: "flex" }}>
-      <div style={{ position: "absolute", right: 15, top: 15, zIndex: 999 }}>
-        <Button variant="contained" onClick={handleExportJson}>
-          Export JSON
-        </Button>
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          right: 15,
-          top: 95,
-          zIndex: 999,
-          padding: "16px",
-          border: "1px solid",
-          background: "white",
-        }}
-      >
-        <WorkflowForm
-          selectedNode={selectedNode}
-          handleNodeValueChange={handleNodeValueChange}
-        />
-      </div>
-
-      <div
-        className="sidebar-grid"
-        style={{ width: "20vw", height: "100vh", background: "grey" }}
-      >
+      <div className="sidebar-grid">
         <Sidebar />
       </div>
-      <div
-        className="react-diagram"
-        style={{ width: "100vw", height: "100vh" }}
-      >
+
+      <div className="react-diagram">
         <ReactFlow
           nodes={nodes}
           nodeTypes={nodeTypes}
@@ -195,7 +176,8 @@ export default function App() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onEdgeClick={handleDeleteEdge}
+          onEdgeDoubleClick={handleDeleteEdge}
+          onEdgeClick={handleEdgeClick}
           onConnect={onConnect}
           onDrop={onDrop}
           onDragOver={onDragOver}
@@ -203,6 +185,36 @@ export default function App() {
           <Background />
           <Controls />
         </ReactFlow>
+      </div>
+
+      <button
+        className="hamburger"
+        onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+      >
+        <Menu />
+      </button>
+      <div className={`right-sidebar ${isRightSidebarOpen ? "open" : ""}`}>
+        <div className="sidebar-content">
+          <Button variant="contained" onClick={handleExportJson}>
+            Export JSON
+          </Button>
+
+          <div className="form-container">
+            {selectedNode ? (
+              <WorkflowForm
+                selectedNode={selectedNode}
+                handleNodeValueChange={handleNodeValueChange}
+              />
+            ) : selectedEdge ? (
+              <EdgeForm
+                selectedEdge={selectedEdge}
+                handleEdgeValueChange={handleEdgeValueChange}
+              />
+            ) : (
+              "please select edge or node"
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

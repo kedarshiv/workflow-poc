@@ -15,18 +15,32 @@ export const WorkflowForm = ({
   handleNodeValueChange,
 }: //   setNodeLabel,
 WorkflowFormTypes) => {
-  const data = selectedNode?.data;
   const [stage, setStage] = useState("");
   const [status, setStatus] = useState("");
+  const [actionType, setActionType] = useState("");
   const [label, setLabel] = useState("");
 
   useEffect(() => {
-    setLabel(data?.label);
+    const data = selectedNode?.data;
+
+    setLabel(data?.label || "");
+    setStage(data?.stage || "");
+    setActionType(data?.actionType || "");
+    setStatus(data?.status || "");
   }, [selectedNode]);
   return (
     <div>
       <h3 style={textStyle}>Update Stage</h3>
 
+      <div style={textStyle}>
+        <TextField
+          required
+          id="stage"
+          label="Stage"
+          value={stage}
+          onChange={(e) => handleNodeValueChange(e.target.value, "stage")}
+        />
+      </div>
       <div style={textStyle}>
         <TextField
           required
@@ -36,14 +50,13 @@ WorkflowFormTypes) => {
           onChange={(e) => handleNodeValueChange(e.target.value, "label")}
         />
       </div>
-
       <div style={textStyle}>
         <TextField
           required
-          id="stage"
-          label="Stage"
-          value={stage}
-          onChange={(e) => setStage(e.target.value)}
+          id="action-type"
+          label="Action Type"
+          value={actionType}
+          onChange={(e) => handleNodeValueChange(e.target.value, "actionType")}
         />
       </div>
       <div style={textStyle}>
@@ -52,7 +65,7 @@ WorkflowFormTypes) => {
           id="status"
           label="Status"
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => handleNodeValueChange(e.target.value, "status")}
         />
       </div>
     </div>
