@@ -1,0 +1,35 @@
+.diamond__wrapper {
+  min-width: 100px;
+  min-height: 100px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.diamond__shape {
+  width: 70%;
+  height: 70%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: white;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid #222;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.content__wrapper {
+  transform: rotate(-45deg);
+}
+
+.custom__handle {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.diamond__wrapper:hover .custom__handle {
+  opacity: 1;
+}

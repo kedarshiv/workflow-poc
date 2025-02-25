@@ -1,6 +1,13 @@
 import React from "react";
 
-type nodeTypes = "circle" | "square" | "default" | "resizeReactangleNode";
+type nodeTypes =
+  | "circle"
+  | "square"
+  | "default"
+  | "resizeReactangleNode"
+  | "startNode"
+  | "endNode"
+  | "diamond";
 
 const ShapeStyle = {
   cursor: "grab",
@@ -25,8 +32,8 @@ export default function Sidebar() {
         justifyContent: "center",
         padding: 10,
         background: "#f0f0f0",
-        height: "97.7%",
         gap: 10,
+        flexWrap: "wrap",
       }}
     >
       <div
@@ -48,6 +55,41 @@ export default function Sidebar() {
         }}
       >
         Square
+      </div>
+
+      <div
+        draggable
+        onDragStart={(event) => onDragStart(event, "startNode")}
+        style={{
+          ...ShapeStyle,
+          borderRadius: "100%",
+        }}
+      >
+        Start
+      </div>
+
+      <div
+        draggable
+        onDragStart={(event) => onDragStart(event, "endNode")}
+        style={{
+          ...ShapeStyle,
+          borderRadius: "100%",
+        }}
+      >
+        End
+      </div>
+      <div
+        draggable
+        onDragStart={(event) => onDragStart(event, "diamond")}
+        style={{
+          ...ShapeStyle,
+          transform: "rotate(45deg)",
+        }}
+      >
+        <span style={{ transform: "rotate(-45deg)", textAlign: "center" }}>
+          {" "}
+          Diamond
+        </span>
       </div>
     </aside>
   );

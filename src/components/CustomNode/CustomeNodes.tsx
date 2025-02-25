@@ -2,39 +2,6 @@ import React, { memo, useState } from "react";
 import { Handle, Position, NodeResizer } from "reactflow";
 import "./CustomeNodes.css";
 // Circle Node
-export const CircleNode = ({
-  data,
-  selected,
-}: {
-  data: any;
-  selected: boolean;
-}) => (
-  <div
-    style={{
-      minWidth: "100px",
-      minHeight: "100px",
-      width: "100%",
-      height: "100%",
-      borderRadius: "50%",
-      backgroundColor: "#00bcd4",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#fff",
-      fontWeight: "bold",
-    }}
-  >
-    <NodeResizer
-      color="#ff0071"
-      isVisible={selected}
-      minWidth={100}
-      minHeight={30}
-    />
-    {data.label}
-    <Handle type="source" position={Position.Right} />
-    <Handle type="target" position={Position.Left} />
-  </div>
-);
 
 export const SquareNode = ({ data }: any) => {
   return (

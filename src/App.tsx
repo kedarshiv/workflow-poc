@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import ReactFlow, {
   addEdge,
   applyEdgeChanges,
@@ -8,16 +8,12 @@ import ReactFlow, {
   Controls,
   Edge,
   EdgeChange,
-  EdgeTypes,
   MarkerType,
   Node,
   NodeChange,
-  OnConnect,
-  OnNodesChange,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import {
-  CircleNode,
   ResizableNodeSelected,
   SquareNode,
 } from "./components/CustomNode/CustomeNodes";
@@ -28,11 +24,20 @@ import { generateFlowObject } from "./utils/utils";
 import "./app.css";
 import { Menu } from "@mui/icons-material";
 import { EdgeForm } from "./components/EdgeForm";
+import DiamondNode from "./components/CustomNode/DiamondNode/DiamondNode";
+import {
+  CircleNodeEnd,
+  CircleNodeStart,
+  CircleNode,
+} from "./components/CustomNode/CircleNodes/CircleNodes";
 
 export const nodeTypes = {
   circle: CircleNode,
   square: SquareNode,
   resizeReactangleNode: ResizableNodeSelected,
+  startNode: CircleNodeStart,
+  endNode: CircleNodeEnd,
+  diamond: DiamondNode,
 };
 
 const edgeConfig = {
