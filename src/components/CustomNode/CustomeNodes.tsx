@@ -101,12 +101,9 @@ export const ResizableNodeSelected = ({
       />
 
       <div>
-        <h4>{data.label}</h4>
+        <p>{data.label}</p>
         <p>{data?.stage}</p>
-        <p>{data?.actionType}</p>
-        <p>{`Template Version: ${
-          data?.template?.templateVersion || 123444
-        }`}</p>
+        {/* <p>{data?.actionType}</p> */}
 
         <Handle
           type="target"

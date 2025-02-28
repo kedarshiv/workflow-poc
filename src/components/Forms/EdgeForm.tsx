@@ -7,24 +7,17 @@ const textStyle = {
 };
 
 type WorkflowFormTypes = {
-  selectedEdge: Edge;
   handleEdgeValueChange: (value: any, field: any) => void;
+  selectedEdge: Edge;
 };
 export const EdgeForm = ({
-  selectedEdge,
   handleEdgeValueChange,
+  selectedEdge,
 }: WorkflowFormTypes) => {
-  console.log({ selectedEdge });
-  const [condition, setCondition] = useState("");
-  const [transitStage, setTransitStage] = useState("");
-  const [label, setLabel] = useState("");
-
-  useEffect(() => {
-    const data = selectedEdge?.data;
-    setCondition(data?.condition || "");
-    setLabel((selectedEdge?.label as string) || "");
-    setTransitStage(data?.transitStage || "");
-  }, [selectedEdge]);
+  const { data, label: edgeLabel } = selectedEdge;
+  const [condition, setCondition] = useState(data?.condition || "");
+  const [transitStage, setTransitStage] = useState(data?.transitStage || "");
+  const [label, setLabel] = useState(edgeLabel || "");
 
   return (
     <div>
@@ -36,7 +29,10 @@ export const EdgeForm = ({
           id="edge-label"
           label="Edge Label"
           value={label}
-          onChange={(e) => handleEdgeValueChange(e.target.value, "label")}
+          onChange={(e) => {
+            setLabel(e.target.value);
+            handleEdgeValueChange(e.target.value, "label");
+          }}
         />
       </div>
       <div style={textStyle}>
@@ -45,7 +41,10 @@ export const EdgeForm = ({
           id="condition"
           label="Condition"
           value={condition}
-          onChange={(e) => handleEdgeValueChange(e.target.value, "condition")}
+          onChange={(e) => {
+            setCondition(e.target.value);
+            handleEdgeValueChange(e.target.value, "condition");
+          }}
         />
       </div>
       <div style={textStyle}>
@@ -54,9 +53,11 @@ export const EdgeForm = ({
           id="transit-stage"
           label="Transit Stage"
           value={transitStage}
-          onChange={(e) =>
-            handleEdgeValueChange(e.target.value, "transitStage")
-          }
+          disabled
+          onChange={(e) => {
+            setTransitStage(e.target.value);
+            handleEdgeValueChange(e.target.value, "transitStage");
+          }}
         />
       </div>
     </div>

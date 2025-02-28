@@ -14,10 +14,10 @@ const ShapeStyle = {
   width: "70px",
   height: "70px",
   border: "1px solid rgb(158 150 150)",
-  marginBottom: "10px",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
+  margin: "auto",
 };
 export default function Sidebar() {
   const onDragStart = (event: any, nodeType: nodeTypes) => {
@@ -32,7 +32,7 @@ export default function Sidebar() {
         justifyContent: "center",
         padding: 10,
         background: "#f0f0f0",
-        gap: 10,
+        gap: 20,
         flexWrap: "wrap",
       }}
     >
@@ -83,11 +83,13 @@ export default function Sidebar() {
         onDragStart={(event) => onDragStart(event, "diamond")}
         style={{
           ...ShapeStyle,
+          width: "55px",
+          height: "55px",
+          marginRight: "10px",
           transform: "rotate(45deg)",
         }}
       >
         <span style={{ transform: "rotate(-45deg)", textAlign: "center" }}>
-          {" "}
           Diamond
         </span>
       </div>

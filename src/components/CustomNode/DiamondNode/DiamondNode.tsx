@@ -2,7 +2,6 @@ import { Handle, NodeResizer, Position } from "reactflow";
 import "./DiamondNode.css";
 
 function DiamondNode({ data, selected }: { data: any; selected: boolean }) {
-  console.log({ data });
   return (
     <div className="diamond__wrapper">
       <NodeResizer

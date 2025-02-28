@@ -19,17 +19,19 @@ import {
 } from "./components/CustomNode/CustomeNodes";
 import Sidebar from "./components/Sidebar";
 import { Button } from "@mui/material";
-import { WorkflowForm } from "./components/WorkflowForm";
-import { generateFlowObject } from "./utils/utils";
+import { WorkflowForm } from "./components/Forms/WorkflowForm";
+import { generateFlowObject, getNodeAction } from "./utils/utils";
 import "./app.css";
 import { Menu } from "@mui/icons-material";
-import { EdgeForm } from "./components/EdgeForm";
+import { EdgeForm } from "./components/Forms/EdgeForm";
 import DiamondNode from "./components/CustomNode/DiamondNode/DiamondNode";
 import {
   CircleNodeEnd,
   CircleNodeStart,
   CircleNode,
 } from "./components/CustomNode/CircleNodes/CircleNodes";
+import { StartNodeForm } from "./components/Forms/StartNodeForm";
+import { EdgeType } from "./utils/types";
 
 export const nodeTypes = {
   circle: CircleNode,
@@ -50,32 +52,57 @@ const edgeConfig = {
   },
 };
 
+// type EdgeType = Edge & {
+//   orginalSource: string;
+// };
 export default function App() {
   const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const [edges, setEdges] = useState<EdgeType[]>([]);
   const [selectedNode, setSelectedNode] = useState<null | Node>(null);
   const [selectedEdge, setSelectedEdge] = useState<null | Edge>(null);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [currentNodeIndex, setCurrentNodeIndex] = useState(-1);
   const [currentEdgeIndex, setCurrentedgeIndex] = useState(-1);
-
+  const [diamondNodeStore, setDiamondNodeStore] = useState(new Map());
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setNodes((nds: any) => applyNodeChanges(changes, nds));
   }, []);
 
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
-    console.log({ changes });
-    setEdges((eds: any) => applyEdgeChanges(changes, eds));
+    setEdges((eds: any) => applyEdgeChanges(changes, eds) as EdgeType[]);
   }, []);
 
-  const onConnect = useCallback((connection: Connection) => {
-    const customConnect = {
-      ...edgeConfig,
-      ...connection,
-      data: { label: "test" },
-    };
-    setEdges((eds: any) => addEdge(customConnect, eds));
-  }, []);
+  const onConnect = useCallback(
+    (connection: Connection) => {
+      const connectedNode = nodes.filter(
+        (node) => node.id === connection.target
+      )?.[0];
+
+      console.log({ connectedNode });
+
+      if (connectedNode.type === "diamond") {
+        const tempDiamondNodeStore = new Map(diamondNodeStore);
+        tempDiamondNodeStore.set(connection.target, connection.source);
+        setDiamondNodeStore(tempDiamondNodeStore);
+      }
+
+      const originalSource = diamondNodeStore.get(connection.source);
+      console.log({ originalSource, connection }, connection.source);
+      const customConnect = {
+        ...edgeConfig,
+        ...connection,
+        originalSource: originalSource ? originalSource : null,
+        data: {
+          transitStage:
+            connectedNode.type !== "diamond" ? connectedNode?.data.stage : null,
+          targetType: connectedNode.type,
+        },
+      };
+
+      setEdges((eds: any) => addEdge(customConnect, eds) as EdgeType[]);
+    },
+    [nodes, diamondNodeStore]
+  );
 
   // Allow dropping elements
   const onDragOver = useCallback((event: any) => {
@@ -89,12 +116,26 @@ export default function App() {
       event.preventDefault();
       const nodeType = event.dataTransfer.getData("application/reactflow");
 
-      const position = { x: event.clientX - 250, y: event.clientY - 50 };
+      const position = { x: event.clientX, y: event.clientY - 50 };
       const newNode = {
         id: `${nodes.length + 1}`,
         type: nodeType,
         position,
-        data: { label: `Node ${nodes.length + 1}` },
+        data: {
+          label:
+            nodeType === "endNode"
+              ? "End"
+              : nodeType === "startNode"
+              ? "Start"
+              : `Node ${nodes.length + 1}`,
+          action: getNodeAction(nodeType),
+          stage:
+            nodeType === "endNode"
+              ? "End"
+              : nodeType === "startNode"
+              ? "Start"
+              : `Stage ${nodes.length + 1}`,
+        },
       };
 
       setNodes((nds: any) => [...nds, newNode]);
@@ -115,13 +156,30 @@ export default function App() {
 
   const handleNodeValueChange = (value: string, field: string) => {
     if (selectedNode) {
+      // updqate the node value
       const currentNode = { ...selectedNode };
       currentNode.data[field] = value;
       setSelectedNode(currentNode);
       const currentNodes = [...nodes];
       currentNodes[currentNodeIndex] = currentNode;
-
       setNodes(currentNodes);
+
+      // populdate the transit stage on the edge
+      if (field === "stage") {
+        const currentEdges = [...edges];
+        const edgeIndex = edges.findIndex(
+          (edge) => edge.target === currentNode.id
+        );
+        currentEdges[edgeIndex] = {
+          ...currentEdges[edgeIndex],
+          data: {
+            ...currentEdges[edgeIndex].data,
+            transitStage: value,
+          },
+        };
+
+        setEdges(currentEdges);
+      }
     }
   };
 
@@ -129,16 +187,18 @@ export default function App() {
     (event: any, edge: Edge<any>) => {
       event.stopPropagation(); // Prevent click from propagating to other elements
       setSelectedNode(null);
+      if (edge.data.targetType === "diamond") {
+        return;
+      }
       setSelectedEdge(edge);
-      console.log({ edge, edges });
       const edgeIndex = edges.findIndex((e) => e.id === edge.id);
-      console.log({ edgeIndex });
       setCurrentedgeIndex(edgeIndex);
     },
-    [edges]
+    [edges, selectedEdge]
   );
 
   console.log({ nodes, edges });
+
   const handleEdgeValueChange = useCallback(
     (value: string, field: string) => {
       if (selectedEdge) {
@@ -150,15 +210,12 @@ export default function App() {
         }
         setSelectedEdge(currentEdge);
         const currentEdges = [...edges];
-        console.log({ currentEdgeIndex });
-        currentEdges[currentEdgeIndex] = currentEdge;
-        console.log({ currentEdges });
+        currentEdges[currentEdgeIndex] = currentEdge as EdgeType;
         setEdges(currentEdges);
       }
     },
     [currentEdgeIndex, selectedEdge]
   );
-
   const handleDeleteEdge = useCallback(
     (event: any, edge: Edge<any>) => {
       event.stopPropagation(); // Prevent click from propagating to other elements
@@ -205,18 +262,32 @@ export default function App() {
           </Button>
 
           <div className="form-container">
-            {selectedNode ? (
-              <WorkflowForm
-                selectedNode={selectedNode}
-                handleNodeValueChange={handleNodeValueChange}
-              />
-            ) : selectedEdge ? (
+            {!selectedEdge && !selectedNode && "please select edge or node"}
+
+            {/* {selectedNode &&
+              (selectedNode?.data?.action as string) === "start" && (
+                <StartNodeForm
+                  handleNodeValueChange={handleNodeValueChange}
+                  selectedNode={selectedNode}
+                  key={currentNodeIndex}
+                />
+              )} */}
+
+            {selectedNode &&
+              (selectedNode?.data?.action as string) !== "start" && (
+                <WorkflowForm
+                  handleNodeValueChange={handleNodeValueChange}
+                  selectedNode={selectedNode}
+                  key={currentNodeIndex}
+                />
+              )}
+
+            {selectedEdge && (
               <EdgeForm
                 selectedEdge={selectedEdge}
+                key={currentEdgeIndex}
                 handleEdgeValueChange={handleEdgeValueChange}
               />
-            ) : (
-              "please select edge or node"
             )}
           </div>
         </div>
